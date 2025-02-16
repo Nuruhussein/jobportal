@@ -1,11 +1,16 @@
 import express from 'express';
 import Application from '../models/Application.js';
 import Job from '../models/Job.js';
-import { authMiddleware } from '../middleware/auth.js';
+import { adminOrEmployerMiddleware, authMiddleware } from '../middleware/auth.js';
 
 const router = express.Router();
 // Get all applications    yes
-router.get('/', authMiddleware, async (req, res) => {
+router.get('/', authMiddleware,adminOrEmployerMiddleware, async (req, res) => {
+
+
+
+
+    
     try {
         if (req.user.role !== 'admin' && req.user.role !== 'evaluator') {
             return res.status(403).json({ error: 'Access denied. Only admins or evaluators can view all applications.' });
@@ -142,25 +147,21 @@ router.patch('/:id', authMiddleware, async (req, res) => {
 });
 
 
-// Delete an application
-router.delete('/:id', authMiddleware, async (req, res) => {
+router.delete('/:id', authMiddleware, adminOrEmployerMiddleware, async (req, res) => {
     try {
         const { id } = req.params;
+        console.log("Deleting application with ID:", id);
+        console.log("User making the request:", req.user);
 
-        const application = await Application.findById(id);
+        const application = await Application.findByIdAndDelete(id);
 
         if (!application) {
             return res.status(404).json({ error: 'Application not found!' });
         }
 
-        if (req.user.role !== 'admin' && application.applicantId.toString() !== req.user.id) {
-            return res.status(403).json({ error: 'Only admins or the applicant can delete this application.' });
-        }
-
-        await application.remove();
-
         res.json({ message: 'Application deleted successfully!' });
     } catch (error) {
+        console.error("Error deleting application:", error);
         res.status(400).json({ error: error.message });
     }
 });

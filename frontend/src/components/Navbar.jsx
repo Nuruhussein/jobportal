@@ -113,7 +113,9 @@ const Navbar = () => {
                         Job List
                       </a>
                     </li>
-                    <li>
+                    {isAuthenticated && user?.role !== "faculity" && (
+                      <div> <li>
+                   
                       <a
                         href="/admin/applications"
                         className="block text-gray-700 hover:bg-indigo-100 py-2 px-4"
@@ -121,6 +123,7 @@ const Navbar = () => {
                         Applications
                       </a>
                     </li>
+
                     <li>
                       <a
                         href="/applicants"
@@ -129,7 +132,9 @@ const Navbar = () => {
                         Applicants
                       </a>
                     </li>
-                    {isAuthenticated && user?.role !== "faculity" && ( <li>
+                    </div>
+                    )}
+                    {isAuthenticated && user?.role === "admin" && ( <li>
                       <a
                         href="/admin/users"
                         className="block text-gray-700 hover:bg-indigo-100 py-2 px-4"
@@ -137,6 +142,13 @@ const Navbar = () => {
                      manage users
                       </a>
                     </li>)}
+                    <button
+                onClick={logout}
+                
+                className="py-3 px-4 text-red-500 bg-white "
+              >
+                Logout
+              </button>
                   </ul>
                 </div>
               </div>

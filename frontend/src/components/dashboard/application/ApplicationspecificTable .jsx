@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import DashboardLayout from "../../../layouts/DashboardLayout";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 const ApplicationspecificTable = () => {
     const [applications, setApplications] = useState([]);
     const [jobTitle, setJobTitle] = useState("");
     const { jobId } = useParams();
-    console.log("Job ID:", jobId); // Check if this logs the correct ID
+    const navigate = useNavigate();
 
     // Fetch applications for the job
     useEffect(() => {
@@ -22,9 +22,8 @@ const ApplicationspecificTable = () => {
                 const config = { headers: { Authorization: `Bearer ${token}` } };
                 const response = await axios.get(`http://localhost:5000/applications/job/${jobId}`, config);
 
-                console.log(jobId);
                 setApplications(response.data);
-                setJobTitle(response.data[0]?.jobId?.title || "Job Applications"); // Assuming `jobId` has a `title` field
+                setJobTitle(response.data[0]?.jobId?.title || "Job Applications");
             } catch (error) {
                 console.error("Error fetching applications:", error);
             }
@@ -33,6 +32,7 @@ const ApplicationspecificTable = () => {
         fetchApplications();
     }, [jobId]);
 
+    // Handle updating application status
     const handleUpdateStatus = async (applicationId, status) => {
         try {
             const token = localStorage.getItem("token");
@@ -40,16 +40,14 @@ const ApplicationspecificTable = () => {
                 alert("You are not logged in!");
                 return;
             }
-    
+
             const config = { headers: { Authorization: `Bearer ${token}` } };
             const response = await axios.patch(
                 `http://localhost:5000/applications/${applicationId}`,
                 { status },
                 config
             );
-    
-            console.log("Response:", response.data); // Log the response for debugging
-    
+
             if (response.data.application && response.data.application.status) {
                 setApplications((prevApplications) =>
                     prevApplications.map((app) =>
@@ -65,7 +63,36 @@ const ApplicationspecificTable = () => {
             alert("An error occurred while updating the status.");
         }
     };
+
+    // Handle viewing application details
+    const handleViewApplication = (applicationId) => {
+        navigate(`/applications/${applicationId}`); // Navigate to the application details page
+    };
+
+    const handleDeleteApplication = async (applicationId) => {
+        try {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                alert("You are not logged in!");
+                return;
+            }
     
+            const confirmDelete = window.confirm("Are you sure you want to delete this application?");
+            if (!confirmDelete) return;
+    
+            const config = { headers: { Authorization: `Bearer ${token}` } };
+            await axios.delete(`http://localhost:5000/applications/${applicationId}`, config);
+    
+            setApplications((prevApplications) =>
+                prevApplications.filter((app) => app._id !== applicationId)
+            );
+    
+            alert("Application deleted successfully!");
+        } catch (error) {
+            console.error("Error deleting application:", error.response?.data || error.message);
+            alert(error.response?.data?.error || "An error occurred while deleting the application.");
+        }
+    };
 
     return (
         <DashboardLayout>
@@ -103,13 +130,25 @@ const ApplicationspecificTable = () => {
                                             </a>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">{app.status}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
+                                        <td className="px-6 py-4 whitespace-nowrap flex space-x-2">
+                                            <button
+                                                onClick={() => handleViewApplication(app._id)}
+                                                className="px-3 py-1 text-sm text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg"
+                                            >
+                                                View
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeleteApplication(app._id)}
+                                                className="px-3 py-1 text-sm text-white bg-red-600 hover:bg-red-700 rounded-lg"
+                                            >
+                                                Delete
+                                            </button>
                                             <select
                                                 value={app.status}
                                                 onChange={(e) =>
                                                     handleUpdateStatus(app._id, e.target.value)
                                                 }
-                                                className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                                className="block w-32 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                             >
                                                 <option value="submitted">Submitted</option>
                                                 <option value="pending">Pending</option>

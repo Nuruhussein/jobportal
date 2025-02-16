@@ -20,6 +20,7 @@ import ApplicationspecificTable from './components/dashboard/application/Applica
 import Users from './components/dashboard/users/Users';
 import Anouncement from './components/Anouncement';
 import Apply from './components/Apply';
+import ViewApplication from './components/dashboard/application/ViewApplication';
 
 // import { AuthProvider } from './components/AuthProvider';
 
@@ -122,7 +123,8 @@ const App = () => {
           <Route path="/admin/addjobs" element={<AddJob />} />
           <Route path="/edit-job/:jobId" element={<EditJob />} />
           <Route path="/admin/applications" element={<ApplicationTable />} />
-          <Route path="/applications/:jobId" element={<ApplicationspecificTable />} />
+          <Route path="/admin/applications/:jobId" element={<ApplicationspecificTable />} />
+          <Route path="/applications/:id" element={<ViewApplication />} />
           <Route path="/admin/users" element={<Users />} />
     
 
