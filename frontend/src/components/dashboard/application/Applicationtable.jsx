@@ -58,8 +58,10 @@ const ApplicationTable = () => {
                                 <th className="px-4 py-3">Applicant Name</th>
                                 <th className="px-4 py-3">CV Link</th>
                                 <th className="px-4 py-3">Status</th>
-                                <th className="px-4 py-3">Evaluator Feedback</th>
-                                <th className="px-4 py-3">Grade</th>
+                                {/* <th className="px-4 py-3">Evaluator Feedback</th>
+                                <th className="px-4 py-3">Grade</th> */}
+                                <th className="px-4 py-3">qualifications</th>
+
                                 <th className="px-4 py-3 text-center">Actions</th>
                             </tr>
                         </thead>
@@ -78,8 +80,9 @@ const ApplicationTable = () => {
                                             {application.status}
                                         </span>
                                     </td>
-                                    <td className="px-4 py-3 text-gray-700">{application.evaluatorFeedback || "N/A"}</td>
-                                    <td className="px-4 py-3 text-gray-700">{application.grade || "N/A"}</td>
+                                    {/* <td className="px-4 py-3 text-gray-700">{application.evaluatorFeedback || "N/A"}</td>
+                                    <td className="px-4 py-3 text-gray-700">{application.grade || "N/A"}</td> */}
+                                    <td className="px-4 py-3 text-gray-700">{application. qualifications|| "N/A"}</td> 
                                     <td className="px-4 py-3 text-center">
                                         <button
                                             onClick={() => navigate(`/applications/${application._id}`)}

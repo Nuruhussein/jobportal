@@ -7,7 +7,9 @@ const Apply = () => {
   const navigate = useNavigate();
   const [job, setJob] = useState(null);
   const [cvLink, setCvLink] = useState("");
+  const [cvImage, setCvImage] = useState(null); // For file upload
   const [coverLetter, setCoverLetter] = useState("");
+  const [qualifications, setQualifications] = useState("");
   const [submissionMessage, setSubmissionMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -36,14 +38,26 @@ const Apply = () => {
         return;
       }
 
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.post(
-        "http://localhost:5000/applications",
-        {
-          jobId,
-          cvLink,
-          coverLetter,
+      // Create a FormData object to send files and other fields
+      const formData = new FormData();
+      formData.append("jobId", jobId);
+      formData.append("cvLink", cvLink || "");
+      formData.append("coverLetter", coverLetter || "");
+      formData.append("qualifications", qualifications || "");
+      if (cvImage) {
+        formData.append("cvImage", cvImage); // Append the file
+      }
+
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data", // Required for file uploads
         },
+      };
+
+      const response = await axios.post(
+        "http://localhost:5000/applications",
+        formData,
         config
       );
 
@@ -100,14 +114,24 @@ const Apply = () => {
       <form onSubmit={handleSubmitApplication} className="space-y-4">
         <div>
           <label htmlFor="cvLink" className="block text-sm font-medium text-gray-700">
-            CV Link
+            CV Link 
           </label>
           <input
             id="cvLink"
             type="url"
             value={cvLink}
             onChange={(e) => setCvLink(e.target.value)}
-            required
+            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          />
+        </div>
+        <div>
+          <label htmlFor="cvImage" className="block text-sm font-medium text-gray-700">
+            Upload CV 
+          </label>
+          <input
+            id="cvImage"
+            type="file"
+            onChange={(e) => setCvImage(e.target.files[0])} // Store the selected file
             className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
           />
         </div>
@@ -119,8 +143,19 @@ const Apply = () => {
             id="coverLetter"
             value={coverLetter}
             onChange={(e) => setCoverLetter(e.target.value)}
-            required
             rows="6"
+            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          ></textarea>
+        </div>
+        <div>
+          <label htmlFor="qualifications" className="block text-sm font-medium text-gray-700">
+            Qualifications 
+          </label>
+          <textarea
+            id="qualifications"
+            value={qualifications}
+            onChange={(e) => setQualifications(e.target.value)}
+            rows="4"
             className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
           ></textarea>
         </div>

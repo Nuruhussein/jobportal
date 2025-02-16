@@ -1,34 +1,63 @@
 import express from 'express';
+import multer from 'multer'; // For handling file uploads
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 import Application from '../models/Application.js';
 import Job from '../models/Job.js';
-import { adminOrEmployerMiddleware, authMiddleware } from '../middleware/auth.js';
+import { authMiddleware,adminOrEmployerMiddleware } from '../middleware/auth.js';
 
 const router = express.Router();
-// Get all applications    yes
-router.get('/', authMiddleware,adminOrEmployerMiddleware, async (req, res) => {
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/'); // Save files to the 'uploads' directory
+    },
+    filename: (req, file, cb) => {
+        cb(null, `${Date.now()}-${file.originalname}`); // Unique filename
+    },
+});
+
+const upload = multer({ storage });
+// Define __dirname for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 
-
-
-    
+// Endpoint to download the CV file
+router.get('/download-cv/:filename', async (req, res) => {
     try {
-        if (req.user.role !== 'admin' && req.user.role !== 'evaluator') {
-            return res.status(403).json({ error: 'Access denied. Only admins or evaluators can view all applications.' });
+        const { filename } = req.params;
+        const filePath = path.join(__dirname, '../uploads', filename); // Construct the full file path
+
+        console.log("File Path:", filePath); // Debugging: Log the file path
+
+        // Check if the file exists
+        if (!fs.existsSync(filePath)) {
+            console.error("File not found:", filePath); // Debugging: Log the error
+            return res.status(404).json({ error: 'File not found.' });
         }
 
-        const applications = await Application.find()
-            .populate('jobId', 'title status')
-            .populate('applicantId', 'name email');
-
-        res.json(applications);
+        // Stream the file to the client
+        res.download(filePath, filename, (err) => {
+            if (err) {
+                console.error("Error downloading file:", err); // Debugging: Log the error
+                res.status(500).json({ error: 'Failed to download the file.' });
+            }
+        });
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        console.error("Error in download endpoint:", error); // Debugging: Log the error
+        res.status(500).json({ error: 'An error occurred while processing your request.' });
     }
 });
 
-router.post('/', authMiddleware, async (req, res) => {
+// Submit a new application with file upload
+router.post('/', authMiddleware, upload.single('cvImage'), async (req, res) => {
     try {
-        const { jobId, cvLink, coverLetter } = req.body;
+        const { jobId, cvLink, coverLetter, qualifications } = req.body;
+        const cvImage = req.file ? req.file.path : null; // Get the file path if uploaded
 
         // Check if the user has already applied for this job
         const existingApplication = await Application.findOne({
@@ -55,8 +84,10 @@ router.post('/', authMiddleware, async (req, res) => {
         const application = new Application({
             jobId,
             applicantId: req.user.id,
-            cvLink,
-            coverLetter,
+            cvLink: cvLink || null,
+            cvImage, // Save the file path
+            coverLetter: coverLetter || null,
+            qualifications: qualifications || null,
         });
 
         await application.save();
@@ -70,6 +101,74 @@ router.post('/', authMiddleware, async (req, res) => {
         res.status(400).json({ error: error.message });
     }
 });
+
+
+// Get all applications    yes
+router.get('/', authMiddleware,adminOrEmployerMiddleware, async (req, res) => {
+
+
+
+
+    
+    try {
+        if (req.user.role !== 'admin' && req.user.role !== 'evaluator') {
+            return res.status(403).json({ error: 'Access denied. Only admins or evaluators can view all applications.' });
+        }
+
+        const applications = await Application.find()
+            .populate('jobId', 'title status')
+            .populate('applicantId', 'name email');
+
+        res.json(applications);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// router.post('/', authMiddleware, async (req, res) => {
+//     try {
+//         const { jobId, cvLink, coverLetter } = req.body;
+
+//         // Check if the user has already applied for this job
+//         const existingApplication = await Application.findOne({
+//             jobId,
+//             applicantId: req.user.id,
+//         });
+
+//         if (existingApplication) {
+//             return res.status(400).json({ error: 'You have already applied for this job.' });
+//         }
+
+//         // Fetch the job to check if it exists and is open
+//         const job = await Job.findById(jobId);
+
+//         if (!job) {
+//             return res.status(404).json({ error: 'Job not found!' });
+//         }
+
+//         if (job.status === 'closed') {
+//             return res.status(400).json({ error: 'Applications for this job are closed.' });
+//         }
+
+//         // Create a new application
+//         const application = new Application({
+//             jobId,
+//             applicantId: req.user.id,
+//             cvLink,
+//             coverLetter,
+//         });
+
+//         await application.save();
+
+//         // Add the application to the job's applicants list
+//         job.applicants.push(application._id);
+//         await job.save();
+
+//         res.status(201).json({ message: 'Application submitted successfully!', application });
+//     } catch (error) {
+//         res.status(400).json({ error: error.message });
+//     }
+// });
 router.get("/user",  authMiddleware , async (req, res) => {
     const applications = await Application.find({ userId: req.user.id });
     res.json(applications);
@@ -167,7 +266,7 @@ router.delete('/:id', authMiddleware, adminOrEmployerMiddleware, async (req, res
 });
 router.get('/user/status', authMiddleware, async (req, res) => {
     try {
-        const applications = await Application.find({ applicantId: req.user.id });
+        const applications = await Application.find({ applicantId: req.user.id }).populate('jobId');
 
         if (applications.length === 0) {
             return res.json({ status: "no_application" }); // No application found
@@ -175,13 +274,14 @@ router.get('/user/status', authMiddleware, async (req, res) => {
 
         const application = applications[0]; // Assume there is only one active application per user
 
-        if (application.status === "accepted") {
-            return res.json({ status: "accepted" }); // Application accepted
-        } else if (application.status === "rejected") {
-            return res.json({ status: "rejected" }); // Application rejected
-        } else {
-            return res.json({ status: "pending" }); // Application still under review (pending)
-        }
+        // Include job details in the response
+        const response = {
+            status: application.status,
+            jobTitle: application.jobId.title, // Assuming the job title is stored in the job document
+            jobId: application.jobId._id, // Include job ID if needed
+        };
+
+        return res.json(response);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

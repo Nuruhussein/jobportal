@@ -2,17 +2,26 @@ import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import cors from 'cors';
-
+import path from "path";
 import authRoute from './routes/authRoute.js';
 import jobRoute from './routes/jobRoute.js';
 import applicationRoute from './routes/applicationRoute.js';
 import userRoute from './routes/usersRoute.js';
 
 
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+// Define __dirname for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const app = express();
+
 
 
 dotenv.config();
-const app = express();
+
 
 // Middleware
 app.use(express.json());
@@ -24,6 +33,9 @@ mongoose
   .then(() => console.log('MongoDB Connected'))
   .catch((err) => console.log(err));
 
+
+// Serve static files from the "uploads" directory
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
   app.use('/auth', authRoute);
   app.use('/jobs', jobRoute);
   app.use('/applications',applicationRoute );

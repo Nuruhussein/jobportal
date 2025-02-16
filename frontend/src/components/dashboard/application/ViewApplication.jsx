@@ -47,15 +47,35 @@ const ViewApplication = () => {
                     <p><strong className="text-gray-900">Applicant Name:</strong> {application.applicantId.name}</p>
                     <p><strong className="text-gray-900">Email:</strong> {application.applicantId.email}</p>
                     <p><strong className="text-gray-900">CV Link:</strong> 
-                        <a href={application.cvLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline ml-2">
-                            View CV
-                        </a>
+                        {application.cvLink ? (
+                            <a href={application.cvLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline ml-2">
+                                View CV
+                            </a>
+                        ) : (
+                            <span className="text-gray-500 ml-2">No CV link provided</span>
+                        )}
                     </p>
-                    <p><strong className="text-gray-900">Cover Letter:</strong> {application.coverLetter}</p>
+                    <p><strong className="text-gray-900">Uploaded CV:</strong> 
+                        {application.cvImage ? (
+                      <a
+                      href={`http://localhost:5000/applications/download-cv/${application.cvImage.replace(/\\/g, '/').split('/').pop()}`}
+                      download
+                      className="text-blue-600 hover:underline ml-2"
+                  >
+                      Download CV
+                  </a>
+                  
+                   
+                        ) : (
+                            <span className="text-gray-500 ml-2">No CV file uploaded</span>
+                        )}
+                    </p>
+                    <p><strong className="text-gray-900">Cover Letter:</strong> {application.coverLetter || "N/A"}</p>
+                    <p><strong className="text-gray-900">Qualifications:</strong> {application.qualifications || "N/A"}</p>
                     <p><strong className="text-gray-900">Status:</strong> 
                         <span className={`ml-2 px-2 py-1 text-sm font-medium rounded-lg 
-                            ${application.status === "Accepted" ? "bg-green-200 text-green-700" : 
-                               application.status === "Rejected" ? "bg-red-200 text-red-700" : 
+                            ${application.status === "accepted" ? "bg-green-200 text-green-700" : 
+                               application.status === "rejected" ? "bg-red-200 text-red-700" : 
                                "bg-yellow-200 text-yellow-700"}`}>
                             {application.status}
                         </span>
