@@ -1,8 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect,useContext } from "react";
+
+import { AuthContext } from "../../context/AuthContext";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom"; // useParams to get the job ID from the URL
+// import { AuthContext } from "../../context/AuthContext";
 
 const EditJob = () => {
+      const { isAuthenticated, user } = useContext(AuthContext); // Assuming user object contains role
+
     const [formData, setFormData] = useState({
         title: "",
         description: "",
@@ -10,6 +15,7 @@ const EditJob = () => {
         qualifications: "",
         deadline: "",
         status: "open",
+        postStatus: "draft",
     });
     const [error, setError] = useState("");
     const navigate = useNavigate();
@@ -156,7 +162,24 @@ console.log(response)
                         <option value="closed">Closed</option>
                     </select>
                 </div>
-
+                {isAuthenticated && user?.role !== "faculity" && (
+                     <div className="mb-4">
+                     <label htmlFor="postStatus" className="block text-sm font-semibold text-gray-700">
+                         Post Status
+                     </label>
+                     <select
+                         id="postStatus"
+                         name="postStatus"
+                         value={formData.postStatus}
+                         onChange={handleChange}
+                      
+                         className="w-full p-2 border rounded-md"
+                     >
+                         <option value="draft">Draft</option>
+                         <option value="published">Published</option>
+                     </select>
+                 </div>
+                )}
                 <div className="mb-4">
                     <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md">
                         Update Job

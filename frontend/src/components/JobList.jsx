@@ -1,18 +1,15 @@
 import { useEffect, useState, useContext } from "react";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom"; // Import useNavigate for navigation
 
 const JobList = () => {
   const [jobs, setJobs] = useState([]);
   const [appliedJobs, setAppliedJobs] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedJob, setSelectedJob] = useState(null);
-  const [cvLink, setCvLink] = useState("");
-  const [coverLetter, setCoverLetter] = useState("");
-  const [submissionMessage, setSubmissionMessage] = useState("");
   const { user, logout } = useContext(AuthContext);
+  const navigate = useNavigate(); // Hook for navigation
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -43,46 +40,9 @@ const JobList = () => {
     fetchAppliedJobs();
   }, []);
 
-  const openModal = (job) => {
-    if (appliedJobs.includes(job._id)) return; // Prevent opening modal if already applied
-    setSelectedJob(job);
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setSelectedJob(null);
-    setIsModalOpen(false);
-    setCvLink("");
-    setCoverLetter("");
-    setSubmissionMessage("");
-  };
-
-  const handleSubmitApplication = async (e) => {
-    e.preventDefault();
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        alert("You are not logged in!");
-        return;
-      }
-
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.post(
-        "http://localhost:5000/applications",
-        {
-          jobId: selectedJob._id,
-          cvLink,
-          coverLetter,
-        },
-        config
-      );
-
-      setAppliedJobs([...appliedJobs, selectedJob._id]); // Update state after applying
-      setSubmissionMessage("Application submitted successfully!");
-      closeModal();
-    } catch (error) {
-      setSubmissionMessage(error.response?.data?.error || "An error occurred.");
-    }
+  const handleApplyClick = (jobId) => {
+    if (appliedJobs.includes(jobId)) return; // Prevent navigation if already applied
+    navigate(`/apply/${jobId}`); // Navigate to the dedicated apply page
   };
 
   return (
@@ -123,7 +83,7 @@ const JobList = () => {
                   ) : (
                     <button
                       className="mt-4 px-4 py-2 text-white bg-indigo-600 hover:bg-indigo-700 rounded-md"
-                      onClick={() => openModal(job)}
+                      onClick={() => handleApplyClick(job._id)}
                     >
                       Apply
                     </button>
@@ -138,55 +98,6 @@ const JobList = () => {
           </div>
         </div>
       </div>
-
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-800 bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-            <h3 className="text-lg font-bold mb-4">Apply for {selectedJob.title}</h3>
-            <form onSubmit={handleSubmitApplication}>
-              <div className="mb-4">
-                <label htmlFor="cvLink" className="block text-sm font-medium text-gray-700">
-                  CV Link
-                </label>
-                <input
-                  id="cvLink"
-                  type="url"
-                  value={cvLink}
-                  onChange={(e) => setCvLink(e.target.value)}
-                  required
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                />
-              </div>
-              <div className="mb-4">
-                <label htmlFor="coverLetter" className="block text-sm font-medium text-gray-700">
-                  Cover Letter
-                </label>
-                <textarea
-                  id="coverLetter"
-                  value={coverLetter}
-                  onChange={(e) => setCoverLetter(e.target.value)}
-                  required
-                  rows="4"
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                ></textarea>
-              </div>
-              {submissionMessage && <p className="text-center text-sm text-green-500">{submissionMessage}</p>}
-              <div className="flex justify-end space-x-2">
-                <button
-                  type="button"
-                  className="px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-md"
-                  onClick={closeModal}
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="px-4 py-2 text-white bg-indigo-600 hover:bg-indigo-700 rounded-md">
-                  Submit
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </section>
   );
 };

@@ -1,7 +1,7 @@
 import { useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import KIOT from "../assets/KIOT.JPG";
-
+import { IoIosNotifications } from "react-icons/io";
 const Navbar = () => {
   const [state, setState] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -144,23 +144,31 @@ const Navbar = () => {
           </div>
         )}
 
+
         <div className="hidden md:inline-block">
           {isAuthenticated ? (
             user?.role == "job_seeker" ? (
+              <div className="flex ">
+              <div className="text-blue-700 px-6 text-4xl"> <a href="/anouncement"><IoIosNotifications /></a></div>
+
               <button
                 onClick={logout}
+                
                 className="py-3 px-4 text-white bg-red-600 hover:bg-red-700 rounded-md shadow"
               >
                 Logout
               </button>
+              </div>
             ) : null
           ) : (
+            <div >
             <a
               href="/login"
               className="py-3 px-4 text-white bg-indigo-600 hover:bg-indigo-700 rounded-md shadow"
             >
               Get Started
             </a>
+                      </div>
           )}
         </div>
       </div>

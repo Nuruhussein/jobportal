@@ -1,14 +1,13 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import DashboardLayout from "../../../layouts/DashboardLayout";
-
 import { useParams } from "react-router-dom";
+
 const ApplicationspecificTable = () => {
     const [applications, setApplications] = useState([]);
     const [jobTitle, setJobTitle] = useState("");
     const { jobId } = useParams();
     console.log("Job ID:", jobId); // Check if this logs the correct ID
-
 
     // Fetch applications for the job
     useEffect(() => {
@@ -23,7 +22,7 @@ const ApplicationspecificTable = () => {
                 const config = { headers: { Authorization: `Bearer ${token}` } };
                 const response = await axios.get(`http://localhost:5000/applications/job/${jobId}`, config);
 
-console.log(jobId);
+                console.log(jobId);
                 setApplications(response.data);
                 setJobTitle(response.data[0]?.jobId?.title || "Job Applications"); // Assuming `jobId` has a `title` field
             } catch (error) {
@@ -41,24 +40,32 @@ console.log(jobId);
                 alert("You are not logged in!");
                 return;
             }
-
+    
             const config = { headers: { Authorization: `Bearer ${token}` } };
             const response = await axios.patch(
                 `http://localhost:5000/applications/${applicationId}`,
                 { status },
                 config
             );
-
-            setApplications((prevApplications) =>
-                prevApplications.map((app) =>
-                    app._id === applicationId ? { ...app, status: response.data.status } : app
-                )
-            );
-            alert("Application status updated successfully!");
+    
+            console.log("Response:", response.data); // Log the response for debugging
+    
+            if (response.data.application && response.data.application.status) {
+                setApplications((prevApplications) =>
+                    prevApplications.map((app) =>
+                        app._id === applicationId ? { ...app, status: response.data.application.status } : app
+                    )
+                );
+                alert("Application status updated successfully!");
+            } else {
+                alert("Failed to update the application status.");
+            }
         } catch (error) {
             console.error("Error updating application status:", error);
+            alert("An error occurred while updating the status.");
         }
     };
+    
 
     return (
         <DashboardLayout>
@@ -105,7 +112,8 @@ console.log(jobId);
                                                 className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                             >
                                                 <option value="submitted">Submitted</option>
-                                                <option value="shortlisted">Shortlisted</option>
+                                                <option value="pending">Pending</option>
+                                                <option value="accepted">Accepted</option>
                                                 <option value="rejected">Rejected</option>
                                             </select>
                                         </td>
@@ -128,7 +136,5 @@ console.log(jobId);
         </DashboardLayout>
     );
 };
-
-
 
 export default ApplicationspecificTable;

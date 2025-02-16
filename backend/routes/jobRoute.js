@@ -34,13 +34,19 @@ router.post('/', authMiddleware, adminOrEmployerMiddleware, async (req, res) => 
         res.status(400).json({ error: error.message });
     }
 });
-// Retrieve all jobs           yes
 router.get('/', async (req, res) => {
     try {
-     
-        const jobs = await Job.find({ status: "open" }).populate('postedBy', 'name email');
+        const jobs = await Job.find({ 
+            status: "open", // Filter by status
+            postStatus: "published" // Filter by postStatus
+        })
+        .populate('postedBy', 'name email'); // Populate the postedBy field
+
+        console.log("Jobs found:", jobs); // Debugging log
+
         res.json(jobs);
     } catch (error) {
+        console.error("Error fetching jobs:", error); // Debugging log
         res.status(400).json({ error: error.message });
     }
 });

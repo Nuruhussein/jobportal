@@ -21,15 +21,21 @@ router.get('/', authMiddleware, async (req, res) => {
     }
 });
 
-// Submit a new application        yes
 router.post('/', authMiddleware, async (req, res) => {
     try {
         const { jobId, cvLink, coverLetter } = req.body;
 
-        if (!req.user || req.user.role !== 'job_seeker') {
-            return res.status(403).json({ error: 'Only job seekers can submit applications.' });
+        // Check if the user has already applied for this job
+        const existingApplication = await Application.findOne({
+            jobId,
+            applicantId: req.user.id,
+        });
+
+        if (existingApplication) {
+            return res.status(400).json({ error: 'You have already applied for this job.' });
         }
 
+        // Fetch the job to check if it exists and is open
         const job = await Job.findById(jobId);
 
         if (!job) {
@@ -40,6 +46,7 @@ router.post('/', authMiddleware, async (req, res) => {
             return res.status(400).json({ error: 'Applications for this job are closed.' });
         }
 
+        // Create a new application
         const application = new Application({
             jobId,
             applicantId: req.user.id,
@@ -49,6 +56,7 @@ router.post('/', authMiddleware, async (req, res) => {
 
         await application.save();
 
+        // Add the application to the job's applicants list
         job.applicants.push(application._id);
         await job.save();
 
@@ -114,10 +122,12 @@ router.patch('/:id', authMiddleware, async (req, res) => {
             return res.status(404).json({ error: 'Application not found!' });
         }
 
+        // Check user role
         if (req.user.role !== 'admin' && req.user.role !== 'evaluator') {
             return res.status(403).json({ error: 'Only admins or evaluators can update applications.' });
         }
 
+        // Update fields if provided
         if (status) application.status = status;
         if (evaluatorFeedback) application.evaluatorFeedback = evaluatorFeedback;
         if (grade) application.grade = grade;
@@ -126,9 +136,11 @@ router.patch('/:id', authMiddleware, async (req, res) => {
 
         res.json({ message: 'Application updated successfully!', application });
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        console.error(error);
+        res.status(400).json({ error: 'Failed to update the application status.' });
     }
 });
+
 
 // Delete an application
 router.delete('/:id', authMiddleware, async (req, res) => {
@@ -152,5 +164,25 @@ router.delete('/:id', authMiddleware, async (req, res) => {
         res.status(400).json({ error: error.message });
     }
 });
+router.get('/user/status', authMiddleware, async (req, res) => {
+    try {
+        const applications = await Application.find({ applicantId: req.user.id });
 
+        if (applications.length === 0) {
+            return res.json({ status: "no_application" }); // No application found
+        }
+
+        const application = applications[0]; // Assume there is only one active application per user
+
+        if (application.status === "accepted") {
+            return res.json({ status: "accepted" }); // Application accepted
+        } else if (application.status === "rejected") {
+            return res.json({ status: "rejected" }); // Application rejected
+        } else {
+            return res.json({ status: "pending" }); // Application still under review (pending)
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
 export default router;

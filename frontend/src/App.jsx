@@ -18,6 +18,8 @@ import { AuthProvider } from './context/AuthProvider';
 import ApplicationTable from './components/dashboard/application/Applicationtable';
 import ApplicationspecificTable from './components/dashboard/application/ApplicationspecificTable ';
 import Users from './components/dashboard/users/Users';
+import Anouncement from './components/Anouncement';
+import Apply from './components/Apply';
 
 // import { AuthProvider } from './components/AuthProvider';
 
@@ -60,6 +62,14 @@ const App = () => {
             }
           />
           <Route
+            path="/anouncement"
+            element={
+              <MainLayout>
+                <Anouncement />
+              </MainLayout>
+            }
+          />
+          <Route
             path="/jobs"
             element={
               <MainLayout>
@@ -67,6 +77,11 @@ const App = () => {
               </MainLayout>
             }
           />
+           <Route path="/apply/:jobId"  element={
+              <MainLayout>
+                <Apply />
+              </MainLayout>
+            } />
           {/* <Route
             path="/employer-dashboard"
             element={

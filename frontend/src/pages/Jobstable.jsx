@@ -78,6 +78,7 @@ function Jobstable() {
                                 <th className="py-3 px-6">Posted By</th>
                                 <th className="py-3 px-6">Deadline</th>
                                 <th className="py-3 px-6">Status</th>
+                                <th className="py-3 px-6">postStatus</th>
                                 <th className="py-3 px-6">applications</th>
 
 
@@ -96,6 +97,7 @@ function Jobstable() {
                                         {new Date(job.deadline).toLocaleDateString()}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">{job.status}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap">{job.postStatus}</td>
                                     <td className="px-6 py-4 whitespace-nowrap"><a
     href={`/applications/${job._id}`}
     className="py-2 px-3 font-medium text-indigo-600 hover:text-indigo-500 duration-150 hover:bg-gray-50 rounded-lg"

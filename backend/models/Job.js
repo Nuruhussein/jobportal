@@ -7,8 +7,8 @@ const JobSchema = new mongoose.Schema({
     qualifications: { type: String },
     deadline: { type: Date, required: true },
     status: { type: String, enum: ['open', 'closed'], default: 'open' },
+    postStatus: { type: String, enum: ['published', 'draft'], default: 'draft' }, // Add this field
     postedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false },
-    
     applicants: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Application' }],
     createdAt: { type: Date, default: Date.now }
 });
