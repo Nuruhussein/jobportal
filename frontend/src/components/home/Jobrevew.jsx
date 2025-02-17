@@ -86,6 +86,7 @@ function Jobrevew() {
             </div>
         </div>
     </div>
+
 </section>
   )
 }
