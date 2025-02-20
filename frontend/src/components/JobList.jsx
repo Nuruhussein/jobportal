@@ -8,13 +8,18 @@ const JobList = () => {
   const [appliedJobs, setAppliedJobs] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { user, logout } = useContext(AuthContext);
+  const [search, setSearch] = useState("");
+  const [department, setDepartment] = useState("");
+  const { user } = useContext(AuthContext);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/jobs");
+        setLoading(true);
+        const response = await axios.get("http://localhost:5000/jobs", {
+          params: { search, department },
+        });
         setJobs(response.data);
       } catch (err) {
         setError(err.message);
@@ -38,7 +43,7 @@ const JobList = () => {
 
     fetchJobs();
     fetchAppliedJobs();
-  }, []);
+  }, [search, department]); // Fetch jobs when search or department changes
 
   const handleApplyClick = (jobId) => {
     if (appliedJobs.includes(jobId)) return;
@@ -48,16 +53,47 @@ const JobList = () => {
   return (
     <div className="relative flex min-h-screen gap-4 flex-row-reverse items-start justify-center overflow-hidden bg-gray-50 p-6 sm:py-12">
       {/* Sidebar */}
-      <div className="bg-white min-h-80 shadow-xl shadow-gray-100 w-full max-w-sm flex flex-col  gap-3 sm:items-center justify-between px-5 py-4 rounded-md mb-8">
+      <div className="bg-white min-h-80 shadow-xl shadow-gray-100 w-full max-w-sm flex flex-col gap-3 sm:items-center justify-between px-5 py-4 rounded-md mb-8">
         <div>
           <h2 className="text-xl font-bold text-gray-900 mb-4">Departments</h2>
-          {jobs.map((job) => ( <p className="text-l font-bold text-gray-900"> {job.department || "jobs"}</p>    ))}
+          {jobs.length > 0 ? (
+            [...new Set(jobs.map((job) => job.department))].map((dept) => (
+              <p key={dept} className="text-l font-bold text-gray-900">
+                {dept || "jobs"}
+              </p>
+            ))
+          ) : (
+            <p className="text-gray-500">No departments available</p>
+          )}
         </div>
-      
       </div>
 
       {/* Job List */}
       <div className="w-full max-w-4xl space-y-6">
+        {/* Search & Filter */}
+        <div className="flex flex-col sm:flex-row gap-3 mb-4">
+          <input
+            type="text"
+            placeholder="Search jobs by title..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="border border-gray-300 rounded-md px-4 py-2 w-full sm:w-80"
+          />
+
+          <select
+            value={department}
+            onChange={(e) => setDepartment(e.target.value)}
+            className="border border-gray-300 rounded-md px-4 py-2 w-full sm:w-60"
+          >
+            <option value="">All Departments</option>
+            {[...new Set(jobs.map((job) => job.department))].map((dept) => (
+              <option key={dept} value={dept}>
+                {dept}
+              </option>
+            ))}
+          </select>
+        </div>
+
         {loading && <p className="text-center text-gray-500">Loading jobs...</p>}
         {error && <p className="text-center text-red-500">{error}</p>}
 
@@ -97,7 +133,7 @@ const JobList = () => {
                       d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                     />
                   </svg>
-                 on-site
+                  on-site
                 </span>
               </div>
               <p className="text-gray-600 mt-2">{job.qualifications}</p>
@@ -139,9 +175,7 @@ const JobList = () => {
           </div>
         ))}
 
-        {!loading && jobs.length === 0 && (
-          <p className="text-center text-gray-500">No jobs available.</p>
-        )}
+        {!loading && jobs.length === 0 && <p className="text-center text-gray-500">No jobs available.</p>}
       </div>
     </div>
   );

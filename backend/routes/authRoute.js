@@ -8,20 +8,35 @@ import { authMiddleware } from '../middleware/auth.js';
 
 const router = express.Router();
 
+
 router.post('/register', async (req, res) => {
-    const { name, email, password, role, department } = req.body;
-    try {
-        const existingUser = await User.findOne({ email });
-        if (existingUser) return res.status(400).json({ message: 'User already exists' });
+  const { name, email, password, role, department } = req.body;
 
-        const hashedPassword = await bcrypt.hash(password, 12);
-        const user = new User({ name, email, password: hashedPassword, role, department });
+  // Email validation regex
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-        await user.save();
-        res.status(201).json({ message: 'User registered successfully' });
-    } catch (err) {
-        res.status(500).json({ message: 'Error registering user', error: err.message });
-    }
+  // Check if password length is greater than 3
+  if (!password || password.length <= 3) {
+      return res.status(400).json({ message: 'Password must be longer than 3 characters' });
+  }
+
+  // Check if email format is valid
+  if (!emailRegex.test(email)) {
+      return res.status(400).json({ message: 'Invalid email format' });
+  }
+
+  try {
+      const existingUser = await User.findOne({ email });
+      if (existingUser) return res.status(400).json({ message: 'User already exists' });
+
+      const hashedPassword = await bcrypt.hash(password, 12);
+      const user = new User({ name, email, password: hashedPassword, role, department });
+
+      await user.save();
+      res.status(201).json({ message: 'User registered successfully' });
+  } catch (err) {
+      res.status(500).json({ message: 'Error registering user', error: err.message });
+  }
 });
 
 // POST /api/auth/login

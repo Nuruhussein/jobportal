@@ -9,20 +9,24 @@ const router = express.Router();
 // Create a new job           yes
 router.post('/', authMiddleware, adminOrEmployerMiddleware, async (req, res) => {
     try {
-        const { title, description, qualifications, deadline } = req.body;
+        const { title, description, qualifications, deadline,department } = req.body;
 
         if (!req.user || !req.user.id) {
             return res.status(403).json({ error: 'Unauthorized: User not found in request.' });
         }
 
         let user = await User.findById(req.user.id); 
-        let department = user.department; 
+
+        // if(!department ){
+        //    let department = user.department; 
+        // }
+        const jobDepartment = department || user.department;
    
 
         const job = new Job({
             title,
             description,
-            department,
+            department: jobDepartment,
             qualifications,
             deadline,
             postedBy: req.user.id,
@@ -36,20 +40,31 @@ router.post('/', authMiddleware, adminOrEmployerMiddleware, async (req, res) => 
 });
 router.get('/', async (req, res) => {
     try {
-        const jobs = await Job.find({ 
-            status: "open", // Filter by status
-            postStatus: "published" // Filter by postStatus
-        })
-        .populate('postedBy', 'name email'); // Populate the postedBy field
+        const { search, department } = req.query;
 
-        console.log("Jobs found:", jobs); // Debugging log
+        let query = {
+            status: "open",
+            postStatus: "published",
+        };
+
+        if (department) {
+            query.department = department;
+        }
+
+        if (search) {
+            query.title = { $regex: search, $options: "i" }; // Case-insensitive search
+        }
+
+        const jobs = await Job.find(query)
+        .populate('postedBy', 'name email') // Populate the postedBy field
+        .sort({ createdAt: -1 });
 
         res.json(jobs);
     } catch (error) {
-        console.error("Error fetching jobs:", error); // Debugging log
         res.status(400).json({ error: error.message });
     }
 });
+
 
 router.get('/dashboard', authMiddleware, async (req, res) => {
     try {

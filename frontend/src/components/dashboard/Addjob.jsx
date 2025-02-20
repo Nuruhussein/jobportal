@@ -1,13 +1,17 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom"; // Use useNavigate instead of useHistory
 import DashboardLayout from "../../layouts/DashboardLayout";
-
+import { AuthContext } from "../../context/AuthContext";
+// import { AuthContext } from "@/context/AuthContext";
 const AddJob = () => {
+
+      const { isAuthenticated, user, logout } = useContext(AuthContext); // Assuming user object contains role
+
     const [formData, setFormData] = useState({
         title: "",
         description: "",
-        // department: "",
+        department: "",
         qualifications: "",
         deadline: "",
     });
@@ -80,8 +84,8 @@ console.log(response)
                         className="w-full p-2 border rounded-md"
                     />
                 </div>
-
-                {/* <div className="mb-4">
+                {isAuthenticated && user?.role !== "faculity" && (
+                <div className="mb-4">
                     <label htmlFor="department" className="block text-sm font-semibold text-gray-700">
                         Department
                     </label>
@@ -94,8 +98,8 @@ console.log(response)
                         required
                         className="w-full p-2 border rounded-md"
                     />
-                </div> */}
-
+                </div>
+                )}
                 <div className="mb-4">
                     <label htmlFor="qualifications" className="block text-sm font-semibold text-gray-700">
                         Qualifications
@@ -130,7 +134,16 @@ console.log(response)
                     <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md">
                         Create Job
                     </button>
+                    <div className="mt-6 flex justify-end">
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="px-5 py-2 text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition duration-200 shadow-md"
+                    >
+                        Back
+                    </button>
                 </div>
+                </div>
+                
             </form>
         </div>
         </DashboardLayout>

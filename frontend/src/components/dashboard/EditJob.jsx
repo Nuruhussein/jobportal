@@ -184,6 +184,14 @@ console.log(response)
                     <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md">
                         Update Job
                     </button>
+                    <div className="mt-6 flex justify-end">
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="px-5 py-2 text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition duration-200 shadow-md"
+                    >
+                        Back
+                    </button>
+                </div>
                 </div>
             </form>
         </div>

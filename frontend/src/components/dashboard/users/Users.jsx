@@ -111,7 +111,7 @@ const Users = () => {
                     <option value="job_seeker">Job Seeker</option>
                     <option value="employer">Employer</option>
                     <option value="evaluator">Evaluator</option>
-                    <option value="faculty">Faculty</option>
+                    <option value="faculity">Faculity</option>
                     <option value="admin">Admin</option>
                 </select>
                 <button onClick={handleAdd} className="bg-blue-500 text-white px-4 py-2 rounded shadow-md hover:bg-blue-600">
@@ -168,7 +168,7 @@ const Users = () => {
                                 <option value="job_seeker">Job Seeker</option>
                                 <option value="employer">Employer</option>
                                 <option value="evaluator">Evaluator</option>
-                                <option value="faculty">Faculty</option>
+                                <option value="faculity">Faculity</option>
                                 <option value="admin">Admin</option>
                             </select>
                             <input type="text" placeholder="Department" className="w-full p-2 border rounded" value={formData.department} onChange={(e) => setFormData({ ...formData, department: e.target.value })} required />

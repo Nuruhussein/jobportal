@@ -148,17 +148,22 @@ const Apply = () => {
           ></textarea>
         </div>
         <div>
-          <label htmlFor="qualifications" className="block text-sm font-medium text-gray-700">
-            Qualifications 
-          </label>
-          <textarea
-            id="qualifications"
-            value={qualifications}
-            onChange={(e) => setQualifications(e.target.value)}
-            rows="4"
-            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-          ></textarea>
-        </div>
+  <label htmlFor="qualifications" className="block text-sm font-medium text-gray-700">
+    Qualifications
+  </label>
+  <select
+    id="qualifications"
+    value={qualifications}
+    onChange={(e) => setQualifications(e.target.value)}
+    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+  >
+    <option value="">Select Qualification</option>
+    <option value="Degree">Degree</option>
+    <option value="Masters">Master's</option>
+    <option value="PhD">PhD</option>
+  </select>
+</div>
+
         {submissionMessage && (
           <p className="text-center text-sm text-green-500">{submissionMessage}</p>
         )}
